@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDSM 属性测试</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f14;--surface:#1a1a24;--surface2:#24243a;
+  --text:#e0e0e8;--text2:#9898b4;--accent:#c44d6e;--accent2:#7c3a8c;
+  --gold:#d4a854;--green:#4ecb71;--bar-bg:#2a2a3e;
+  --radius:12px;--radius-sm:8px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;
+  background-image:radial-gradient(ellipse at 50% 0%,#2a1a3a22 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 100%,#1a1a2a44 0%,transparent 50%);
+}
+.container{max-width:720px;margin:0 auto;padding:24px 20px 60px}
+.header{text-align:center;padding:48px 0 32px}
+.header h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:var(--text2);margin-top:8px;font-size:0.95rem}
+.progress-wrap{padding:0 0 32px}
+.progress-bar{height:4px;background:var(--bar-bg);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s ease}
+.progress-text{text-align:right;color:var(--text2);font-size:0.8rem;margin-top:6px}
+.card{background:var(--surface);border:1px solid #ffffff08;border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;animation:fadeUp 0.4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card h3{font-size:1.05rem;font-weight:600;margin-bottom:20px}
+.q-num{display:inline-block;font-size:0.7rem;font-weight:700;color:var(--accent);background:#c44d6e15;padding:2px 10px;border-radius:20px;margin-bottom:8px}
+.options{display:flex;gap:8px;flex-wrap:wrap}
+.opt{flex:1;min-width:56px;padding:12px 8px;text-align:center;border:2px solid #ffffff0d;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:0.85rem;font-weight:500;transition:all 0.2s ease;user-select:none}
+.opt:hover{border-color:var(--accent);color:var(--text);background:#c44d6e10}
+.opt.selected{border-color:var(--accent);background:#c44d6e20;color:#fff;box-shadow:0 0 20px #c44d6e15}
+.opt-label{display:block;font-size:0.65rem;color:var(--text2);margin-top:3px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 32px;border:none;border-radius:var(--radius);font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.25s ease;width:100%}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#b33d5e);color:#fff;box-shadow:0 4px 24px #c44d6e25}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 32px #c44d6e35}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid #ffffff0d}
+.btn-secondary:hover{background:#2e2e44}
+.btn-submit{background:linear-gradient(135deg,var(--green),#3aa85a);color:#fff;box-shadow:0 4px 24px #4ecb7125}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 6px 32px #4ecb7135}
+.btn-submit:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.results{display:none}
+.results.show{display:block}
+.result-hero{text-align:center;padding:40px 24px;margin-bottom:24px;background:var(--surface);border-radius:var(--radius);border:1px solid #ffffff08}
+.result-hero h2{font-size:1.6rem;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.result-hero .subtitle{color:var(--text2);font-size:0.95rem;margin-bottom:20px}
+.badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0}
+.badge{padding:8px 20px;border-radius:24px;font-weight:600;font-size:0.9rem;border:2px solid var(--accent);color:var(--accent);background:#c44d6e10}
+.dim-list{display:flex;flex-direction:column;gap:12px}
+.dim-row{display:flex;align-items:center;gap:12px}
+.dim-label{min-width:90px;font-size:0.85rem;font-weight:600;color:var(--text);text-align:right}
+.dim-bar-wrap{flex:1;height:28px;background:var(--bar-bg);border-radius:6px;overflow:hidden}
+.dim-bar{height:100%;border-radius:6px;transition:width 1s ease;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.dim-bar.high{background:linear-gradient(90deg,var(--gold),#e6b84a)}
+.dim-pct{min-width:44px;font-size:0.8rem;font-weight:700;color:var(--text2)}
+.profile-card{background:var(--surface);border:1px solid #ffffff08;border-radius:var(--radius);padding:24px 28px;margin-top:20px}
+.profile-card h4{font-size:1rem;font-weight:600;margin-bottom:12px}
+.profile-card p{color:var(--text2);font-size:0.9rem;line-height:1.8}
+.submit-section{text-align:center;margin-top:24px;padding:32px 24px}
+.submit-section .note{font-size:0.85rem;color:var(--text2);margin-bottom:16px}
+.submitted-badge{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--radius);background:#4ecb7115;border:2px solid var(--green);color:var(--green);font-weight:600;font-size:0.95rem}
+.share-section{text-align:center;margin-top:20px}
+.share-link{display:inline-block;padding:12px 20px;background:var(--surface2);border-radius:var(--radius-sm);color:var(--accent);font-size:0.85rem;word-break:break-all;margin-top:8px}
+.disclaimer{margin-top:32px;padding:20px;border-radius:var(--radius);background:#c44d6e08;border:1px solid #c44d6e15;color:var(--text2);font-size:0.8rem;line-height:1.7;text-align:center}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #fff3;border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.container{padding:16px 12px 40px}.header h1{font-size:1.6rem}.card{padding:20px 16px}.options{gap:4px}.opt{padding:10px 4px;font-size:0.75rem}.dim-label{min-width:70px;font-size:0.75rem}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>BDSM 属性测试</h1>
+    <p>了解你在权力交换关系中的多维度倾向 · 匿名提交</p>
+  </div>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0 / 25</div>
+  </div>
+  <div id="questionArea"></div>
+  <div class="results" id="results">
+    <div class="result-hero" id="resultHero"></div>
+    <div class="card"><h3>📊 各维度详细得分</h3><div class="dim-list" id="dimBars"></div></div>
+    <div class="profile-card" id="profileCard"></div>
+    <div class="submit-section" id="submitSection"></div>
+    <div class="share-section" id="shareSection" style="display:none">
+      <p style="color:var(--text2);font-size:0.85rem">📤 把链接发给更多人来测试：</p>
+      <div class="share-link" id="shareLink"></div>
+    </div>
+  </div>
+  <div class="disclaimer">
+    ⚠️ 本测试仅供娱乐和自我探索参考。BDSM 健康实践的核心是<b>知情同意、安全词、事后安抚</b>。<br>所有提交均为匿名，不收集个人身份信息。
+  </div>
+</div>
+
+<script>
+// ===== Supabase =====
+const SUPABASE_URL = "https://pfunlcypfkneybflyurr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Pp83_264N80dTaSkTYejHg_JYtSZiZz";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== DATA =====
+const questions=[
+  {text:"在亲密关系中，我更喜欢主导节奏和方向",dims:{D:1}},
+  {text:"我愿意在信任的人面前交出控制权",dims:{s:1}},
+  {text:"施加经过协商同意的身体疼痛/刺激让我感到兴奋",dims:{S:1,D:0.3}},
+  {text:"接受可控的身体疼痛/刺激让我感到放松或愉悦",dims:{M:1,s:0.3}},
+  {text:"我喜欢用绳索、手铐等方式束缚对方",dims:{Rigger:1,D:0.3,S:0.3}},
+  {text:"被束缚起来让我有安全感或兴奋感",dims:{Ropee:1,s:0.3,M:0.3}},
+  {text:"我喜欢对伴侣下达明确的命令",dims:{D:1,Owner:0.5}},
+  {text:"执行我尊重之人的命令让我感到满足",dims:{s:1,Pet:0.3}},
+  {text:"我喜欢故意调皮反抗，看对方怎么应对",dims:{Brat:1,s:0.3}},
+  {text:"驯服一个调皮不听话的人让我很有成就感",dims:{Tamer:1,D:0.4}},
+  {text:"在安全情境下用言语羞辱伴侣让我感兴趣",dims:{Degrader:1,D:0.3,S:0.2}},
+  {text:"在安全情境下被言语羞辱让我异常兴奋",dims:{Degradee:1,s:0.3,M:0.2}},
+  {text:"我享受照顾和呵护伴侣的感觉",dims:{Owner:0.7,D:0.3}},
+  {text:"我喜欢被当作宠物/所有物来对待",dims:{Pet:1,s:0.4}},
+  {text:"本能的追逐/扑倒互动方式吸引我",dims:{D:0.3,s:0.3,S:0.3,M:0.3}},
+  {text:"我可以在关系中灵活切换主导和服从角色",dims:{Switch:1}},
+  {text:"打屁股/体罚作为惩罚手段让我感兴趣（施加方）",dims:{S:0.8,Tamer:0.4,D:0.3}},
+  {text:"打屁股/体罚作为惩罚手段让我感兴趣（接受方）",dims:{M:0.8,Brat:0.4,s:0.3}},
+  {text:"我喜欢在事前协商详细的规则和界限",dims:{D:0.2,s:0.2,Owner:0.2,Pet:0.2}},
+  {text:"看到伴侣跪在我面前让我有满足感",dims:{Owner:1,D:0.5}},
+  {text:"我愿意跪在我信任的人面前",dims:{Pet:0.8,s:0.5}},
+  {text:"我对24/7全天候主奴关系感到好奇",dims:{Owner:0.4,Pet:0.4,D:0.2,s:0.2}},
+  {text:"制造紧张/恐惧气氛比生理刺激更让我兴奋",dims:{D:0.6,S:0.3,Degrader:0.3}},
+  {text:"被对方制造的紧张/恐惧氛围笼罩让我沉迷",dims:{s:0.6,M:0.3,Degradee:0.3}},
+  {text:"我喜欢为伴侣服务、取悦对方",dims:{s:0.6,Pet:0.5}},
+  {text:"我享受伴侣为我服务、取悦我的过程",dims:{D:0.6,Owner:0.5}}
+];
+
+const dimDefs={
+  D:{name:"支配者 (Dominant)",emoji:"👑"},
+  s:{name:"臣服者 (Submissive)",emoji:"🙇"},
+  S:{name:"施虐者 (Sadist)",emoji:"🔥"},
+  M:{name:"受虐者 (Masochist)",emoji:"💫"},
+  Rigger:{name:"缚束主动 (Rigger)",emoji:"🪢"},
+  Ropee:{name:"缚束承受 (Ropee)",emoji:"🪢"},
+  Brat:{name:"顽皮反抗 (Brat)",emoji:"😈"},
+  Tamer:{name:"驯服者 (Tamer)",emoji:"🐉"},
+  Owner:{name:"主人 (Owner)",emoji:"🏰"},
+  Pet:{name:"宠物/所有物 (Pet)",emoji:"🐾"},
+  Degrader:{name:"羞辱方 (Degrader)",emoji:"⛓"},
+  Degradee:{name:"羞辱承受 (Degradee)",emoji:"🕯"},
+  Switch:{name:"双面转换 (Switch)",emoji:"🔄"}
+};
+const dimKeys=Object.keys(dimDefs);
+let answers=new Array(questions.length).fill(0),currentQ=0;
+
+function renderQuestion(){
+  const a=document.getElementById("questionArea");
+  if(currentQ>=questions.length){showResults();return}
+  const q=questions[currentQ],n=currentQ+1;
+  let h=`<div class="card"><span class="q-num">第 ${n}/${questions.length} 题</span><h3>${q.text}</h3><div class="options">`;
+  const labels=["完全不符合","不太符合","中立/不确定","比较符合","完全符合"];
+  for(let i=1;i<=5;i++){
+    const s=answers[currentQ]===i?" selected":"";
+    h+=`<div class="opt${s}" onclick="select(${i})">${i}<span class="opt-label">${labels[i-1]}</span></div>`;
+  }
+  h+=`</div><div style="margin-top:20px;display:flex;gap:12px">`;
+  if(n>1)h+=`<button class="btn btn-secondary" style="width:auto" onclick="prev()">← 上一题</button>`;
+  h+=`<button class="btn btn-primary" id="nextBtn" style="width:auto" ${answers[currentQ]===0?"disabled":""} onclick="next()">${n===questions.length?"查看结果 →":"下一题 →"}</button>`;
+  h+=`</div></div>`;a.innerHTML=h;updateProgress()
+}
+function select(v){answers[currentQ]=v;renderQuestion()}
+function next(){if(answers[currentQ]===0)return;if(currentQ<questions.length-1){currentQ++;renderQuestion()}else showResults()}
+function prev(){if(currentQ>0){currentQ--;renderQuestion()}}
+function updateProgress(){
+  const c=answers.filter(x=>x>0).length;
+  document.getElementById("progressFill").style.width=Math.round(c/questions.length*100)+"%";
+  document.getElementById("progressText").textContent=c+"/"+questions.length
+}
+
+function calcScores(){
+  const s={},m={};dimKeys.forEach(k=>{s[k]=0;m[k]=0});
+  questions.forEach((q,i)=>{const a=answers[i];if(!a)return;Object.entries(q.dims).forEach(([d,w])=>{s[d]+=a*w;m[d]+=5*w})});
+  const p={};dimKeys.forEach(k=>{p[k]=m[k]?Math.round(s[k]/m[k]*100):0});return p
+}
+
+function getProfile(p){
+  const top=dimKeys.map(k=>({k,p:p[k]})).sort((a,b)=>b.p-a.p).slice(0,5).filter(d=>d.p>=40);
+  const r=[],dS=p.D,sS=p.s,SS=p.S,MS=p.M;
+  if(p.Switch>=60)r.push({t:"🔄 灵活转换者",d:"在支配与臣服之间高度灵活，可自如切换角色。"});
+  else{
+    if(dS>=60&&SS>=50)r.push({t:"👑 严厉支配者",d:"掌控欲 + 施加刺激倾向，典型严厉型 Dom/Sadist。"});
+    else if(dS>=60&&p.Owner>=60)r.push({t:"🏰 主人型支配者",d:"支配倾向体现在归属感和照顾欲上，典型 Owner 型。"});
+    else if(dS>=55)r.push({t:"👑 支配者",d:"享受掌控方向、下达命令，权力快感来自对方服从。"});
+    if(sS>=60&&MS>=50)r.push({t:"💫 受虐型臣服者",d:"交出控制权 + 享受身体刺激，典型 masochistic sub。"});
+    else if(sS>=60&&p.Pet>=60)r.push({t:"🐾 宠物型臣服者",d:"享受被照顾、被拥有的归属感胜过服从命令本身。"});
+    else if(sS>=55)r.push({t:"🙇 臣服者",d:"从交出控制权中获得满足，信任是基石。"});
+    if(p.Brat>=55)r.push({t:"😈 顽皮反抗者",d:"反抗中被驯服，调皮是前戏，享受被征服的张力。"});
+    if(p.Tamer>=55)r.push({t:"🐉 驯服者",d:"享受驯服不听话的对象，驯服比直接服从更满足。"});
+  }
+  if(p.Rigger>=55)r.push({t:"🪢 缚束主",d:"绳缚是表达掌控和审美的重要方式。"});
+  if(p.Ropee>=55)r.push({t:"🪢 缚束承受者",d:"被束缚是释放——身体限制带来心灵解放。"});
+  if(p.Degrader>=55)r.push({t:"⛓ 羞辱主导",d:"言语羞辱是权力表达的延伸，享受心理支配。"});
+  if(p.Degradee>=55)r.push({t:"🕯 羞辱承受",d:"被羞辱是情感释放和深层信任的体现。"});
+  if(!r.length)r.push({t:"🌱 探索者",d:"倾向尚在发展中，保持探索的节奏。"});
+  return{top,r}
+}
+
+let myPcts={};
+function showResults(){
+  document.getElementById("questionArea").style.display="none";
+  document.getElementById("progressWrap").style.display="none";
+  document.getElementById("results").classList.add("show");
+  myPcts=calcScores();const{top,r}=getProfile(myPcts);
+  let h=`<h2>你的 BDSM 属性画像</h2><p class="subtitle">基于 ${questions.length} 道题的综合评估</p><div class="badges">`;
+  top.forEach(d=>{h+=`<span class="badge">${dimDefs[d.k].emoji} ${dimDefs[d.k].name} ${d.p}%</span>`});
+  h+=`</div>`;document.getElementById("resultHero").innerHTML=h;
+  const sorted=dimKeys.map(k=>({k,p:myPcts[k]})).sort((a,b)=>b.p-a.p);
+  let bh="";sorted.forEach(d=>{const hi=d.p>=55?"high":"";bh+=`<div class="dim-row"><div class="dim-label">${dimDefs[d.k].emoji} ${dimDefs[d.k].name}</div><div class="dim-bar-wrap"><div class="dim-bar ${hi}" style="width:${d.p}%"></div></div><div class="dim-pct">${d.p}%</div></div>`});
+  document.getElementById("dimBars").innerHTML=bh;
+  let ph=`<h4>📋 属性解读</h4>`;r.forEach(p=>{ph+=`<p style="margin-bottom:16px"><strong>${p.t}</strong><br>${p.d}</p>`});
+  ph+=`<hr style="border-color:#ffffff08;margin:16px 0"><p style="font-size:0.8rem;color:var(--text2)">💡 BDSM 属性是光谱维度而非二元标签。数值反映相对倾向强度。</p>`;
+  document.getElementById("profileCard").innerHTML=ph;
+  document.getElementById("submitSection").innerHTML=`
+    <p class="note">📤 匿名提交你的结果，参与群体画像统计</p>
+    <button class="btn btn-submit" id="submitBtn" onclick="submitResult()" style="width:auto;padding:16px 48px">📤 匿名提交结果</button>
+    <p style="font-size:0.75rem;color:var(--text2);margin-top:8px">不收集任何个人身份信息</p>`;
+  document.getElementById("shareLink").textContent=window.location.href;
+  document.getElementById("shareSection").style.display="block";
+  document.getElementById("results").scrollIntoView({behavior:"smooth"})
+}
+
+async function submitResult(){
+  const btn=document.getElementById("submitBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span> 提交中...';
+  const{error}=await supabase.from("responses").insert({answers:answers,scores:myPcts});
+  if(error){alert("提交失败："+error.message);btn.disabled=false;btn.textContent="📤 匿名提交结果";return}
+  document.getElementById("submitSection").innerHTML=`
+    <div class="submitted-badge">✅ 提交成功！感谢你的参与</div>
+    <p style="margin-top:12px;font-size:0.85rem;color:var(--text2)">你的结果已匿名纳入群体统计</p>`;
+}
+
+function retake(){answers=new Array(questions.length).fill(0);currentQ=0;myPcts={};document.getElementById("results").classList.remove("show");document.getElementById("questionArea").style.display="";document.getElementById("progressWrap").style.display="";renderQuestion();window.scrollTo({top:0,behavior:"smooth"})}
+document.addEventListener("keydown",function(e){if(document.getElementById("results").classList.contains("show"))return;const k=parseInt(e.key);if(k>=1&&k<=5&&currentQ<questions.length){answers[currentQ]=k;renderQuestion()}});
+renderQuestion();
+</script>
+</body>
+</html>

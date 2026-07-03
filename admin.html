@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - BDSM 属性测试</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f14;--surface:#1a1a24;--surface2:#24243a;--text:#e0e0e8;--text2:#9898b4;--accent:#c44d6e;--gold:#d4a854;--green:#4ecb71;--bar-bg:#2a2a3e;--radius:12px}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:24px 20px 60px}
+.header{text-align:center;padding:40px 0 24px}
+.header h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:var(--text2);font-size:0.9rem;margin-top:6px}
+.card{background:var(--surface);border:1px solid #ffffff08;border-radius:var(--radius);padding:24px 28px;margin-bottom:20px}
+.card h3{font-size:1.05rem;font-weight:600;margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface2);border-radius:var(--radius);padding:16px 20px;text-align:center}
+.stat-card .num{font-size:2rem;font-weight:700;color:var(--accent)}
+.stat-card .lbl{font-size:0.8rem;color:var(--text2);margin-top:4px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.bar-label{min-width:100px;font-size:0.82rem;font-weight:600;text-align:right}
+.bar-wrap{flex:1;height:24px;background:var(--bar-bg);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.8s ease;min-width:2px}
+.bar-val{min-width:44px;font-size:0.78rem;font-weight:700;color:var(--text2)}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th,td{padding:10px 12px;text-align:center;border-bottom:1px solid #ffffff08}
+th{color:var(--accent);font-weight:600;font-size:0.75rem;position:sticky;top:0;background:var(--surface)}
+td{color:var(--text2)}tr:hover td{background:#ffffff04}
+.highlight{color:var(--gold);font-weight:700}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.input{padding:10px 16px;background:var(--surface2);border:1px solid #ffffff0d;border-radius:8px;color:var(--text);font-size:0.9rem;outline:none;flex:1;min-width:180px}
+.input:focus{border-color:var(--accent)}
+.btn{padding:10px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;transition:all 0.2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{opacity:0.9}
+.btn-outline{background:transparent;border:1px solid var(--accent);color:var(--accent)}.btn-outline:hover{background:#c44d6e10}
+.login-wrap{max-width:400px;margin:80px auto}
+.hidden{display:none}
+.error{color:var(--accent);font-size:0.85rem;margin-top:8px}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="login-wrap card" id="loginWrap">
+    <h3>🔐 管理后台</h3>
+    <div class="controls" style="flex-direction:column">
+      <input class="input" type="password" id="pwInput" placeholder="请输入管理密码" onkeydown="if(event.key==='Enter')load()">
+      <button class="btn btn-primary" onclick="load()" style="width:100%">登录</button>
+    </div>
+    <p id="loginError" class="error"></p>
+    <p style="font-size:0.75rem;color:var(--text2);margin-top:12px;text-align:center">默认密码: bdsm2024</p>
+  </div>
+
+  <div id="dashWrap" class="hidden">
+    <div class="header"><h1>📊 BDSM 属性测试 · 数据面板</h1><p id="dashTime"></p></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="card"><h3>📈 各维度平均得分</h3><div id="avgBars"></div></div>
+    <div class="card">
+      <h3>📋 全部提交记录</h3>
+      <div class="controls">
+        <button class="btn btn-outline" onclick="exportCSV()">📥 导出 CSV</button>
+        <button class="btn btn-outline" onclick="refresh()">🔄 刷新</button>
+        <button class="btn btn-outline" onclick="logout()">🚪 退出</button>
+      </div>
+      <div style="overflow-x:auto;max-height:500px;overflow-y:auto">
+        <table><thead><tr><th>ID</th><th>时间</th><th>D</th><th>s</th><th>S</th><th>M</th><th>缚主</th><th>缚承</th><th>Brat</th><th>Tamer</th><th>Owner</th><th>Pet</th><th>羞辱方</th><th>羞辱承</th><th>Switch</th></tr></thead><tbody id="respBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://pfunlcypfkneybflyurr.supabase.co";
+const SUPABASE_KEY="sb_publishable_Pp83_264N80dTaSkTYejHg_JYtSZiZz";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const dimKeys=["D","s","S","M","Rigger","Ropee","Brat","Tamer","Owner","Pet","Degrader","Degradee","Switch"];
+const dimShort={D:"支配者",s:"臣服者",S:"施虐者",M:"受虐者",Rigger:"缚束主动",Ropee:"缚束承受",Brat:"顽皮反抗",Tamer:"驯服者",Owner:"主人",Pet:"宠物",Degrader:"羞辱方",Degradee:"羞辱承受",Switch:"双面转换"};
+let password="",allData=[];
+
+async function load(){
+  password=document.getElementById("pwInput").value;
+  if(!password){document.getElementById("loginError").textContent="请输入密码";return}
+  document.getElementById("loginError").textContent="";
+  const{data,error}=await sb.rpc("admin_get_responses",{pw:password});
+  if(error){document.getElementById("loginError").textContent=error.message||"密码错误或读取失败";return}
+  allData=data||[];
+  document.getElementById("loginWrap").classList.add("hidden");
+  document.getElementById("dashWrap").classList.remove("hidden");
+  renderDash()
+}
+
+function renderDash(){
+  document.getElementById("dashTime").textContent="更新时间: "+new Date().toLocaleString();
+  const n=allData.length;
+  if(!n){document.getElementById("statsGrid").innerHTML='<div class="stat-card"><div class="num">0</div><div class="lbl">暂无数据</div></div>';document.getElementById("avgBars").innerHTML='<p style="color:var(--text2)">暂无提交</p>';document.getElementById("respBody").innerHTML='';return}
+  const sums={};dimKeys.forEach(k=>sums[k]=0);
+  allData.forEach(r=>{const s=r.scores||{};dimKeys.forEach(k=>sums[k]+=(s[k]||0))});
+  const avgs={};dimKeys.forEach(k=>avgs[k]=Math.round(sums[k]/n));
+  document.getElementById("statsGrid").innerHTML=`
+    <div class="stat-card"><div class="num">${n}</div><div class="lbl">总提交数</div></div>
+    <div class="stat-card"><div class="num">${avgs.D}%</div><div class="lbl">平均支配者</div></div>
+    <div class="stat-card"><div class="num">${avgs.s}%</div><div class="lbl">平均臣服者</div></div>
+    <div class="stat-card"><div class="num">${avgs.Switch}%</div><div class="lbl">平均转换者</div></div>`;
+  const sorted=dimKeys.map(k=>({k,avg:avgs[k]})).sort((a,b)=>b.avg-a.avg);
+  let bh="";sorted.forEach(d=>{bh+=`<div class="bar-row"><div class="bar-label">${dimShort[d.k]}</div><div class="bar-wrap"><div class="bar-fill" style="width:${d.avg}%"></div></div><div class="bar-val">${d.avg}%</div></div>`});
+  document.getElementById("avgBars").innerHTML=bh;
+  let tb="";allData.forEach(r=>{const s=r.scores||{};tb+=`<tr><td>${r.id}</td><td>${(r.submitted_at||"").replace("T"," ").substring(0,19)}</td>`;dimKeys.forEach(k=>{const v=s[k]||0;tb+=`<td class="${v>=70?"highlight":""}">${v}%</td>`});tb+=`</tr>`});
+  document.getElementById("respBody").innerHTML=tb
+}
+
+function refresh(){renderDash()}
+function logout(){allData=[];password="";document.getElementById("loginWrap").classList.remove("hidden");document.getElementById("dashWrap").classList.add("hidden");document.getElementById("pwInput").value=""}
+function exportCSV(){
+  const lines=["id,time,"+dimKeys.join(",")];
+  allData.forEach(r=>{const s=r.scores||{};const v=dimKeys.map(k=>s[k]||0);lines.push(`${r.id},"${(r.submitted_at||"").replace("T"," ").substring(0,19)}",`+v.join(","))});
+  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bdsm_responses.csv";a.click()
+}
+</script>
+</body>
+</html>
