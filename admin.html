@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -73,22 +73,29 @@ var dimKeys=["D","s","S","M","Rigger","Ropee","Brat","Tamer","Owner","Pet","Degr
 var dimShort={D:"支配者",s:"臣服者",S:"施虐者",M:"受虐者",Rigger:"缚束主动",Ropee:"缚束承受",Brat:"顽皮反抗",Tamer:"驯服者",Owner:"主人",Pet:"宠物",Degrader:"羞辱方",Degradee:"羞辱承受",Switch:"双面转换"};
 var password="",allData=[],sbReady=false;
 
-// Lazy load Supabase
-(function(){
-  var s=document.createElement("script");
-  s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-  s.onload=function(){sbReady=true};
-  s.onerror=function(){
-    var f=document.createElement("script");
-    f.src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-    f.onload=function(){sbReady=true};
-    document.head.appendChild(f);
-  };
-  document.head.appendChild(s);
+// Lazy load Supabase (多 CDN 容错)
+(function loadSBAdmin(){
+  var urls=[
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+    "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+    "https://esm.sh/@supabase/supabase-js@2",
+    "https://cdnjs.cloudflare.com/ajax/libs/supabase/2.39.0/supabase.min.js"
+  ];
+  var idx=0;
+  function tryLoad(){
+    if(idx>=urls.length){console.warn("所有 Supabase CDN 加载失败，请刷新重试");return}
+    var s=document.createElement("script");
+    s.src=urls[idx];
+    var timeout=setTimeout(function(){idx++;tryLoad()},8000);
+    s.onload=function(){clearTimeout(timeout);sbReady=true};
+    s.onerror=function(){clearTimeout(timeout);idx++;tryLoad()};
+    document.head.appendChild(s);
+  }
+  tryLoad();
 })();
 
 function getSB(){
-  if(!sbReady||!window.supabase)throw new Error("CDN 未加载完成，请刷新页面重试");
+  if(!sbReady||!window.supabase)throw new Error("Supabase CDN 仍在加载中，请稍后再试。如果持续失败请刷新页面");
   return window.supabase.createClient("https://pfunlcypfkneybflyurr.supabase.co","sb_publishable_Pp83_264N80dTaSkTYejHg_JYtSZiZz")
 }
 
