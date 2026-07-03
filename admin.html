@@ -62,7 +62,7 @@ td{color:var(--text2)}tr:hover td{background:#ffffff04}
         <button class="btn btn-outline" onclick="logout()">🚪 退出</button>
       </div>
       <div style="overflow-x:auto;max-height:500px;overflow-y:auto">
-        <table><thead><tr><th>ID</th><th>时间</th><th>D</th><th>s</th><th>S</th><th>M</th><th>缚主</th><th>缚承</th><th>Brat</th><th>Tamer</th><th>Owner</th><th>Pet</th><th>羞辱方</th><th>羞辱承</th><th>Switch</th></tr></thead><tbody id="respBody"></tbody></table>
+        <table><thead><tr><th>ID</th><th>时间</th><th>D</th><th>s</th><th>S</th><th>M</th><th>缚主</th><th>缚承</th><th>Brat</th><th>Tamer</th><th>Owner</th><th>Pet</th><th>羞辱方</th><th>羞辱承</th><th>Switch</th><th>操作</th></tr></thead><tbody id="respBody"></tbody></table>
       </div>
     </div>
   </div>
@@ -92,6 +92,17 @@ async function load(){
     document.getElementById("dashWrap").classList.remove("hidden");
     renderDash()
   }catch(e){document.getElementById("loginError").textContent=e.message||"密码错误或加载失败"}}
+
+async function del(id){
+  if(!confirm('确认删除此条记录？'))return;
+  try{
+    var sb=getSB();
+    var{error}=await sb.from("responses").delete().eq("id",id);
+    if(error)throw error;
+    refresh();
+  }catch(e){alert('删除失败：'+(e.message||e))}
+}
+
 function renderDash(){
   document.getElementById("dashTime").textContent="更新时间: "+new Date().toLocaleString();
   var n=allData.length;
@@ -103,7 +114,7 @@ function renderDash(){
   var sorted=dimKeys.map(function(k){return{k:k,avg:avgs[k]}}).sort(function(a,b){return b.avg-a.avg});
   var bh="";sorted.forEach(function(d){bh+='<div class="bar-row"><div class="bar-label">'+dimShort[d.k]+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+d.avg+'%"></div></div><div class="bar-val">'+d.avg+'%</div></div>'});
   document.getElementById("avgBars").innerHTML=bh;
-  var tb="";allData.forEach(function(r){var s=r.scores||{};tb+='<tr><td>'+r.id+'</td><td>'+((r.submitted_at||"").replace("T"," ").substring(0,19))+'</td>';dimKeys.forEach(function(k){var v=s[k]||0;tb+='<td class="'+(v>=70?"highlight":"")+'">'+v+'%</td>'});tb+='</tr>'});
+  var tb="";allData.forEach(function(r){var s=r.scores||{};tb+='<tr><td>'+r.id+'</td><td>'+((r.submitted_at||"").replace("T"," ").substring(0,19))+'</td>';dimKeys.forEach(function(k){var v=s[k]||0;tb+='<td class="'+(v>=70?"highlight":"")+'">'+v+'%</td>'});tb+='<td><button class="btn btn-outline" onclick="del('+r.id+')" style="padding:4px 12px;font-size:0.75rem">删除</button></td></tr>'});
   document.getElementById("respBody").innerHTML=tb}
 function refresh(){renderDash()}
 function logout(){allData=[];password="";document.getElementById("loginWrap").classList.remove("hidden");document.getElementById("dashWrap").classList.add("hidden");document.getElementById("pwInput").value=""}
