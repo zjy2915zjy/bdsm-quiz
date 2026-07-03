@@ -198,7 +198,7 @@ function getProfile(p){
   return{top:top,r:r}
 }
 function escapeHtml(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
-function buildShareText(pcts,pr){var t="🎭 BDSM 属性测试结果\n"+new Date().toLocaleString()+"\n━━━━━━━━━━━━━━━━━━\n\n📊 各维度得分：\n";var sorted=dimKeys.map(function(k){return{k:k,p:pcts[k]}}).sort(function(a,b){return b.p-a.p});sorted.forEach(function(d){var bar="";var n=Math.round(d.p/5);for(var i=0;i<20;i++)bar+=i<n?"█":"░";t+=dimDefs[d.k].emoji+" "+dimDefs[d.k].name+" ".repeat(8-dimDefs[d.k].name.length)+bar+" "+d.p+"%\n"});t+="\n🏷 属性标签：\n";pr.r.forEach(function(x){t+="  "+x.t+"\n"});return t}
+function buildShareText(pcts,pr){var t="🎭 BDSM 属性测试结果\n"+new Date().toLocaleString()+"\n━━━━━━━━━━━━━━━━━━\n\n📊 各维度得分：\n";var sorted=dimKeys.map(function(k){return{k:k,p:pcts[k]}}).sort(function(a,b){return b.p-a.p});sorted.forEach(function(d){var bar="";var n=Math.round(d.p/5);for(var i=0;i<20;i++)bar+=i<n?"█":"░";t+="  "+dimDefs[d.k].emoji+" "+dimDefs[d.k].name+"\n    "+bar+" "+d.p+"%\n"});t+="\n🏷 属性标签：\n";pr.r.forEach(function(x){t+="  "+x.t+"\n"});return t}
 function showResults(){
   document.getElementById("questionArea").style.display="none";
   document.getElementById("progressWrap").style.display="none";
