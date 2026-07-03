@@ -79,17 +79,17 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
     <div class="card"><h3>📊 各维度详细得分</h3><div class="dim-list" id="dimBars"></div></div>
     <div class="profile-card" id="profileCard"></div>
     <div class="submit-section" id="submitSection" style="display:none">
-      <p class="note">?? ??????????????????</p>
+      <p class="note">📋 复制结果发给对方，或匿名提交参与统计</p>
       <div class="share-box" id="shareBox" style="background:var(--surface2);border-radius:var(--radius);padding:16px 20px;margin:12px 0;font-size:0.82rem;color:var(--text2);white-space:pre-wrap;text-align:left;max-height:200px;overflow-y:auto;font-family:monospace"></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
-        <button class="btn btn-submit" id="copyBtn" onclick="copyResults()" style="flex:1;min-width:160px;padding:14px 20px">?? ??????</button>
-        <button class="btn btn-primary" id="submitBtn" onclick="submitResult()" style="flex:1;min-width:160px;padding:14px 20px">?? ??????</button>
+        <button class="btn btn-submit" id="copyBtn" onclick="copyResults()" style="flex:1;min-width:160px;padding:14px 20px">📋 一键复制结果</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitResult()" style="flex:1;min-width:160px;padding:14px 20px">📤 匿名提交结果</button>
       </div>
-      <p id="copyMsg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none">? ??????????</p>
+      <p id="copyMsg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none">✅ 已复制！发给对方即可</p>
       <p id="submitMsg" style="font-size:0.8rem;margin-top:4px"></p>
-      <p style="font-size:0.7rem;color:var(--text2);margin-top:4px">???????????</p>
+      <p style="font-size:0.7rem;color:var(--text2);margin-top:4px">不收集任何个人身份信息</p>
     </div>
-    <div class="share-section" id="shareSection" style="display:none">
+<div class="share-section" id="shareSection" style="display:none">
       <p style="color:var(--text2);font-size:0.85rem">📤 把链接发给更多人来测试：</p>
       <div class="share-link" id="shareLink"></div>
     </div>
