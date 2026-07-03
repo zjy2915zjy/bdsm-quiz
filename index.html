@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -186,6 +186,8 @@ function getProfile(p){
   if(!r.length)r.push({t:"🌱 探索者",d:"倾向尚在发展中，保持探索的节奏。"});
   return{top:top,r:r}
 }
+function escapeHtml(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function buildShareText(pcts,pr){var t="🎭 BDSM 属性测试结果\n"+new Date().toLocaleString()+"\n━━━━━━━━━━━━━━━━━━\n\n📊 各维度得分：\n";var sorted=dimKeys.map(function(k){return{k:k,p:pcts[k]}}).sort(function(a,b){return b.p-a.p});sorted.forEach(function(d){var bar="";var n=Math.round(d.p/5);for(var i=0;i<20;i++)bar+=i<n?"█":"░";t+=dimDefs[d.k].emoji+" "+dimDefs[d.k].name+" ".repeat(8-dimDefs[d.k].name.length)+bar+" "+d.p+"%\n"});t+="\n🏷 属性标签：\n";pr.r.forEach(function(x){t+="  "+x.t+"\n"});return t}
 function showResults(){
   document.getElementById("questionArea").style.display="none";
   document.getElementById("progressWrap").style.display="none";
@@ -200,47 +202,34 @@ function showResults(){
   var ph='<h4>📋 属性解读</h4>';pr.r.forEach(function(p){ph+='<p style="margin-bottom:16px"><strong>'+p.t+'</strong><br>'+p.d+'</p>'});
   ph+='<hr style="border-color:#ffffff08;margin:16px 0"><p style="font-size:0.8rem;color:var(--text2)">💡 BDSM 属性是光谱维度而非二元标签。数值反映相对倾向强度。</p>';
   document.getElementById("profileCard").innerHTML=ph;
-  document.getElementById("submitSection").innerHTML='<p class="note">📤 匿名提交你的结果，参与群体画像统计</p><button class="btn btn-submit" id="submitBtn" onclick="submitResult()" style="width:auto;padding:16px 48px">📤 匿名提交结果</button><p style="font-size:0.75rem;color:var(--text2);margin-top:8px">不收集任何个人身份信息</p>';
-  document.getElementById("shareLink").textContent=window.location.href;
-  document.getElementById("shareSection").style.display="block";
+  var shareText=buildShareText(myPcts,pr);
+document.getElementById("submitSection").innerHTML='<p class="note">📋 复制下方结果发送给你的 Dom/Sub/伙伴</p><div class="share-box" id="shareBox" style="background:var(--surface2);border-radius:var(--radius);padding:16px 20px;margin:12px 0;font-size:0.82rem;color:var(--text2);white-space:pre-wrap;text-align:left;max-height:200px;overflow-y:auto;font-family:monospace">'+escapeHtml(shareText)+'</div><button class="btn btn-submit" id="copyBtn" onclick="copyResults()" style="width:auto;padding:14px 40px">📋 一键复制结果</button><p id="copyMsg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none">✅ 已复制！发给对方即可</p>';
+  
   document.getElementById("results").scrollIntoView({behavior:"smooth"})
 }
 function retake(){answers=new Array(questions.length).fill(0);currentQ=0;myPcts={};document.getElementById("results").classList.remove("show");document.getElementById("questionArea").style.display="";document.getElementById("progressWrap").style.display="";renderQuestion();window.scrollTo({top:0,behavior:"smooth"})}
 document.addEventListener("keydown",function(e){if(document.getElementById("results").classList.contains("show"))return;var k=parseInt(e.key);if(k>=1&&k<=5&&currentQ<questions.length){answers[currentQ]=k;renderQuestion()}});
 renderQuestion();
 
-// ===== SUPABASE (lazy load, won't block quiz) =====
-var supabaseReady=false;
-(function loadSB(){
-  var s=document.createElement("script");
-  s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-  s.onload=function(){supabaseReady=true};
-  s.onerror=function(){
-    var f=document.createElement("script");
-    f.src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-    f.onload=function(){supabaseReady=true};
-    f.onerror=function(){console.warn("Supabase CDN 加载失败，提交功能不可用")};
-    document.head.appendChild(f);
-  };
-  document.head.appendChild(s);
-})();
-
-function getSB(){
-  if(!supabaseReady||!window.supabase)throw new Error("CDN 未加载");
-  return window.supabase.createClient("https://pfunlcypfkneybflyurr.supabase.co","sb_publishable_Pp83_264N80dTaSkTYejHg_JYtSZiZz")
+// ===== 复制结果 =====
+function copyResults(){
+  var text=buildShareText(myPcts,getProfile(myPcts));
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      var m=document.getElementById("copyMsg");m.style.display="block";
+      var b=document.getElementById("copyBtn");b.textContent="✅ 已复制";b.className="btn btn-secondary";
+      setTimeout(function(){m.style.display="none";b.textContent="📋 一键复制结果";b.className="btn btn-submit"},3000);
+    }).catch(function(){fallbackCopy(text)})
+  }else{fallbackCopy(text)}
 }
-
-async function submitResult(){
-  var btn=document.getElementById("submitBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span> 提交中...';
-  try{
-    var sb=getSB();
-    var{error}=await sb.from("responses").insert({answers:answers,scores:myPcts});
-    if(error)throw error;
-    document.getElementById("submitSection").innerHTML='<div class="submitted-badge">✅ 提交成功！感谢你的参与</div><p style="margin-top:12px;font-size:0.85rem;color:var(--text2)">你的结果已匿名纳入群体统计</p>';
-  }catch(e){
-    alert("提交失败："+(e.message||e)+"\n请检查网络后重试");
-    btn.disabled=false;btn.textContent="📤 匿名提交结果";
-  }
+function fallbackCopy(text){
+  var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.left="-9999px";
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");var m=document.getElementById("copyMsg");m.style.display="block";
+    var b=document.getElementById("copyBtn");b.textContent="✅ 已复制";b.className="btn btn-secondary";
+    setTimeout(function(){m.style.display="none";b.textContent="📋 一键复制结果";b.className="btn btn-submit"},3000);
+  }catch(e){alert("复制失败，请手动选中上方文字复制")}
+  document.body.removeChild(ta);
 }
 </script>
 </body>
