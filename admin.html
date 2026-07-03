@@ -97,9 +97,11 @@ async function del(id){
   if(!confirm('确认删除此条记录？'))return;
   try{
     var sb=getSB();
-    var{data,error}=await sb.rpc("admin_delete_response",{pw:password,target_id:id});
-    if(error)throw error;
-    refresh();
+    console.log('Deleting id:',id,'pw:',password?'***':'undefined');
+    var result=await sb.rpc("admin_delete_response",{pw:password,target_id:id});
+    console.log('Delete result:',result);
+    if(result.error)throw result.error;
+    if(result.data===true){refresh()}else{alert('删除结果异常：'+JSON.stringify(result.data))}
   }catch(e){alert('删除失败：'+(e.message||e))}
 }
 
