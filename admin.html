@@ -97,10 +97,11 @@ async function del(id){
   if(!confirm('确认删除此条记录？'))return;
   try{
     var sb=getSB();
-    var{error}=await sb.from("responses").delete().eq("id",id);
+    var{data,error}=await sb.from("responses").delete().eq("id",id).select();
     if(error)throw error;
+    if(!data||data.length===0)throw new Error("未找到该记录");
     refresh();
-  }catch(e){alert('删除失败：'+(e.message||e))}
+  }catch(e){alert('删除失败：'+(e.message||e)+'\n\n请在Supabase运行：\nCREATE POLICY allow_delete ON responses FOR DELETE USING (true);')}
 }
 
 function renderDash(){
