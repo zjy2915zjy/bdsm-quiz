@@ -78,7 +78,17 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
     <div class="result-hero" id="resultHero"></div>
     <div class="card"><h3>📊 各维度详细得分</h3><div class="dim-list" id="dimBars"></div></div>
     <div class="profile-card" id="profileCard"></div>
-    <div class="submit-section" id="submitSection"></div>
+    <div class="submit-section" id="submitSection" style="display:none">
+      <p class="note">?? ??????????????????</p>
+      <div class="share-box" id="shareBox" style="background:var(--surface2);border-radius:var(--radius);padding:16px 20px;margin:12px 0;font-size:0.82rem;color:var(--text2);white-space:pre-wrap;text-align:left;max-height:200px;overflow-y:auto;font-family:monospace"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <button class="btn btn-submit" id="copyBtn" onclick="copyResults()" style="flex:1;min-width:160px;padding:14px 20px">?? ??????</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitResult()" style="flex:1;min-width:160px;padding:14px 20px">?? ??????</button>
+      </div>
+      <p id="copyMsg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none">? ??????????</p>
+      <p id="submitMsg" style="font-size:0.8rem;margin-top:4px"></p>
+      <p style="font-size:0.7rem;color:var(--text2);margin-top:4px">???????????</p>
+    </div>
     <div class="share-section" id="shareSection" style="display:none">
       <p style="color:var(--text2);font-size:0.85rem">📤 把链接发给更多人来测试：</p>
       <div class="share-link" id="shareLink"></div>
@@ -204,11 +214,11 @@ function showResults(){
   ph+='<hr style="border-color:#ffffff08;margin:16px 0"><p style="font-size:0.8rem;color:var(--text2)">💡 BDSM 属性是光谱维度而非二元标签。数值反映相对倾向强度。</p>';
   document.getElementById("profileCard").innerHTML=ph;
   var shareText=buildShareText(myPcts,pr);
-document.getElementById("submitSection").innerHTML='<p class="note">📋 复制结果发给对方，或匿名提交参与统计</p><div class="share-box" id="shareBox" style="background:var(--surface2);border-radius:var(--radius);padding:16px 20px;margin:12px 0;font-size:0.82rem;color:var(--text2);white-space:pre-wrap;text-align:left;max-height:200px;overflow-y:auto;font-family:monospace">'+escapeHtml(shareText)+'</div><div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center"><button class="btn btn-submit" id="copyBtn" onclick="copyResults()" style="flex:1;min-width:160px;padding:14px 20px">📋 一键复制结果</button><button class="btn btn-primary" id="submitBtn" onclick="submitResult()" style="flex:1;min-width:160px;padding:14px 20px">📤 匿名提交结果</button></div><p id="copyMsg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none">✅ 已复制！发给对方即可</p><p id="submitMsg" style="font-size:0.8rem;margin-top:4px"></p><p style="font-size:0.7rem;color:var(--text2);margin-top:4px">不收集任何个人身份信息</p>';
+document.getElementById("submitSection").style.display="";document.getElementById("shareBox").textContent=shareText;
   
   document.getElementById("results").scrollIntoView({behavior:"smooth"})
 }
-function retake(){answers=new Array(questions.length).fill(0);currentQ=0;myPcts={};document.getElementById("results").classList.remove("show");document.getElementById("questionArea").style.display="";document.getElementById("progressWrap").style.display="";renderQuestion();window.scrollTo({top:0,behavior:"smooth"})}
+function retake(){answers=new Array(questions.length).fill(0);currentQ=0;myPcts={};document.getElementById("results").classList.remove("show");document.getElementById("submitSection").style.display="none";document.getElementById("questionArea").style.display="";document.getElementById("progressWrap").style.display="";renderQuestion();window.scrollTo({top:0,behavior:"smooth"})}
 document.addEventListener("keydown",function(e){if(document.getElementById("results").classList.contains("show"))return;var k=parseInt(e.key);if(k>=1&&k<=5&&currentQ<questions.length){answers[currentQ]=k;renderQuestion()}});
 renderQuestion();
 
