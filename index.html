@@ -89,7 +89,7 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
   </div>
 </div>
 
-<script src="supabase.min.js"></script>
+<script src="supabase.min.js" defer></script>
 <script>
 // ===== QUIZ LOGIC (independent of Supabase) =====
 const questions=[
@@ -234,7 +234,7 @@ function fallbackCopy(text){
 }
 
 // ===== SUPABASE =====
-var supabaseReady=true; // 本地文件已加载
+// supabase loads async via defer // 本地文件已加载
 
 function getSB(){
   if(!supabaseReady||!window.supabase)throw new Error("CDN 未加载");
@@ -255,6 +255,6 @@ async function submitResult(){
 }
 </script>
 </body>
-</html>
+<!-- v3 async supabase --></html>
 
 <!-- 20260703234226 -->
